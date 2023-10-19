@@ -3,6 +3,10 @@
 
 #include <QApplication>
 
+#include <QSettings>
+
+#include <QStyleFactory>
+
 #include <QMainWindow>
 
 
@@ -21,146 +25,172 @@
 
 
 #include <QFile>
-
 #include <QTextStream>
 
 class MainWindow : public QMainWindow
 {
 Q_OBJECT
 
-public:
-    MainWindow();
-public slots:
-    void open()
-    {
-        fileName = QFileDialog::getOpenFileName(this, "Open file", "");
-        if (fileName.isEmpty())
-        {
-            QMessageBox::warning(this, "Error", "There is no file to open.");
-        }
-        else
-        {
-            file = new QFile(fileName);
-            if (file->open(QIODevice::ReadOnly | QIODevice::Text))
+    public:
+        MainWindow();
+        //{{{
+            //{{{   initializtions
+                QSettings settings;
+            //}}}
+        //}}}
+    public slots:
+        //{{{   fileMenu
+            void open()
             {
-                output = new QTextStream(file);
+                fileName = QFileDialog::getOpenFileName(this, "Open file", "");
+                if (fileName.isEmpty())
+                {
+                    QMessageBox::warning(this, "Error", "There is no file to open.");
+                }
+                else
+                {
+                    file = new QFile(fileName);
+                    if (file->open(QIODevice::ReadOnly | QIODevice::Text))
+                    {
+                        output = new QTextStream(file);
 
-                textBox->setPlainText(output->readAll());
-                currentFileName->setText(fileName);
+                        textBox->setPlainText(output->readAll());
+                        currentFileName->setText(fileName);
 
-                delete output;
-                file->close();
+                        delete output;
+                        file->close();
 
-                QMessageBox::information(this, "Success", "The file has been successfully opened.");
+                        QMessageBox::information(this, "Success", "The file has been successfully opened.");
+                    }
+                    else
+                    {
+                        QMessageBox::warning(this, "Error", "Could not open the file for reading.");
+                    }
+                    delete file;
+                }
             }
-            else
+            void save()
             {
-                QMessageBox::warning(this, "Error", "Could not open the file for reading.");
+                if (fileName.isEmpty())
+                {
+                    QMessageBox::warning(this, "Error", "There is no file to save.");
+                }
+                else
+                {
+                    file = new QFile(fileName);
+                    if (file->open(QIODevice::WriteOnly | QIODevice::Text))
+                    {
+                        input = new QTextStream(file);
+
+                        *input << textBox->toPlainText();
+
+                        delete input;
+                        file->close();
+
+                        QMessageBox::information(this, "Success", "The file has been successfully saved.");
+                    }
+                    else
+                    {
+                        QMessageBox::warning(this, "Error", "Could not open the file for saving.");
+                    }
+                    delete file;
+                }
             }
-            delete file;
-        }
-    }
-    void save()
-    {
-        if (fileName.isEmpty())
-        {
-            QMessageBox::warning(this, "Error", "There is no file to save.");
-        }
-        else
-        {
-            file = new QFile(fileName);
-            if (file->open(QIODevice::WriteOnly | QIODevice::Text))
+            void saveAs()
             {
-                input = new QTextStream(file);
+                fileName = QFileDialog::getSaveFileName(this, "Save file as", "");
+                if (fileName.isEmpty())
+                {
+                    QMessageBox::warning(this, "Error", "There is no path to save the file at.");
+                }
+                else
+                {
+                    file = new QFile(fileName);
+                    if (file->open(QIODevice::WriteOnly | QIODevice::Text))
+                    {
+                        input = new QTextStream(file);
 
-                *input << textBox->toPlainText();
+                        *input << textBox->toPlainText();
+                        currentFileName->setText(fileName);
 
-                delete input;
-                file->close();
+                        delete input;
+                        file->close();
 
-                QMessageBox::information(this, "Success", "The file has been successfully saved.");
+                        QMessageBox::information(this, "Success", "The file has been successfully saved.");
+                    }
+                    else
+                    {
+                        QMessageBox::warning(this, "Error", "Could not open the file for saving.");
+                    }
+                    delete file;
+                }
             }
-            else
+            void exit()
             {
-                QMessageBox::warning(this, "Error", "Could not open the file for saving.");
+                QApplication::instance()->quit();
             }
-            delete file;
-        }
-    }
-    void saveAs()
-    {
-        fileName = QFileDialog::getSaveFileName(this, "Save file as", "");
-        if (fileName.isEmpty())
-        {
-            QMessageBox::warning(this, "Error", "There is no path to save the file at.");
-        }
-        else
-        {
-            file = new QFile(fileName);
-            if (file->open(QIODevice::WriteOnly | QIODevice::Text))
+            void setApplicationStyle(QString styleName)
             {
-                input = new QTextStream(file);
+                settings.setValue("style", styleName);
+                settings.sync();
 
-                *input << textBox->toPlainText();
-                currentFileName->setText(fileName);
-
-                delete input;                
-                file->close();
-
-                QMessageBox::information(this, "Success", "The file has been successfully saved.");
+                QMessageBox::information(this, "Success", "The style has been saved. In order to apply it, restart the application.");
             }
-            else
-            {
-                QMessageBox::warning(this, "Error", "Could not open the file for saving.");
-            }
-            delete file;
-        }
-    }
-    void exit()
-    {
-        QApplication::instance()->quit();
-    }
-private:
-    QMenuBar* menuBar;
+        //}}}
+    private:
+        //{{{   menuBar
+            //{{{   initializtions
+                QMenuBar* menuBar;
 
-    QMenu*    fileMenu;
+                QMenu*    fileMenu;
 
-    QAction*  openAction;
-    QAction*  saveAction;
-    QAction*  saveAsAction;
-    QAction*  exitAction;
+                QAction*  openAction;
+                QAction*  saveAction;
+                QAction*  saveAsAction;
+                QAction*  exitAction;
 
-    QMenu*    viewMenu;
+                QMenu*    viewMenu;
 
-    QAction*  setStyleAction;
+                QAction*  setStyleAction;
 
-    QMenu*    setStyleSubMenu;
+                QMenu*    setStyleSubMenu;
 
+                QAction*  windowsAction;
+                QAction*  macAction;
+                QAction*  fusionAction;
+                QAction*  plastiqueAction;
+                QAction*  cdeAction;
+                QAction*  cleanLooksAction;
+                QAction*  gtkAction;
+            //}}}
+        //}}}
 
-    QAction*  windowsAction;
-    QAction*  macAction;
-    QAction*  fusionAction;
-    QAction*  plastiqueAction;
-    QAction*  cdeAction;
-    QAction*  cleanLooksAction;
-    QAction*  gtkAction;
+        //{{{   textBox
+            //{{{   initializtions
+                QTextEdit* textBox;
 
+                QTextCursor* textCursor;
+            //}}}
+        //}}}
 
-    QTextEdit* textBox;
+        //{{{   statusBar
+            //{{{   initializtions
+                QStatusBar* statusBar;
 
+                QLabel* currentFileName;
+            //}}}
+        //}}}
 
-    QStatusBar* statusBar;
+        //{{{   file
+            //{{{   initializtions
+                QFile* file;
 
-    QLabel* currentFileName;
+                QString fileName;
 
-
-    QFile* file;
-
-    QString fileName;
-
-    QTextStream* output;
-    QTextStream* input;
-
+                QTextStream* output;
+                QTextStream* input;
+            //}}}
+        //}}}
 };
 
 #endif
